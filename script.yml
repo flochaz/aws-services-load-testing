@@ -1,0 +1,32 @@
+# Thank you for trying serverless-artillery!
+# This default script is intended to get you started quickly.
+# There is a lot more that Artillery can do.
+# You can find great documentation of the possibilities at:
+# https://artillery.io/docs/
+config:
+  plugins:
+    cloudwatch:
+      namespace: ddbtest
+    aws-sigv4:
+      serviceName: dynamodb
+  target: https://dynamodb.us-east-1.amazonaws.com
+  processor: ./setJSONBody.js
+  phases:
+    - duration: 2
+      arrivalRate: 50000
+_split:
+  maxScriptDurationInSeconds: 1	# = 12 hours, max of 3 days
+  maxChunkDurationInSeconds: 15	# = 4 minutes, max of 4 minutes and 45 seconds
+  maxScriptRequestsPerSecond: 50000	# max of 50,000 RPS
+  maxChunkRequestsPerSecond: 500		# max of 500 RPS
+  timeBufferInMilliseconds: 100		# = 15 seconds, max of 30 seconds
+scenarios:
+  - flow:
+    - function: "generateRandomData"
+    - post:
+        # Update the URL with your function's deployed name
+        url: "/"
+        headers:
+          X-Amz-Target: DynamoDB_20120810.BatchWriteItem   
+        beforeRequest: "setJSONBody"
+        afterTemplateVarsSubstitution: addAmazonSignatureV4
